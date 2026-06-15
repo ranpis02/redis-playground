@@ -9,9 +9,10 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * @Accessors(chain = true): This annotation allows for chainable setter methods.
- * For example, you can create a new BlogComments object by
- * BlogComments comment = new BlogComments().setUserId(123L).setBlogId(456L);
+ * The {@code @Accessors(chain = true)} annotation allows for chainable setter
+ * methods.
+ * For example, you can create a new {@code BlogComments} object by:
+ * {@code BlogComments comment = new BlogComments().setUserId(123L).setBlogId(456L);}
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -36,7 +37,8 @@ public class BlogComments implements Serializable {
     private Long blogId;
 
     /**
-     * ID of the associated top-level comment (If this comment is a top-level comment, then the value is set to 0)
+     * ID of the associated top-level comment (If this comment is a top-level
+     * comment, then the value is set to 0)
      */
     private Long parentId;
 
