@@ -1,0 +1,45 @@
+# Server configuration
+server:
+  port: 8080
+
+# Application configuration
+spring:
+  application:
+    name: redis-playground
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/review?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 0
+      timeout: 3s
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 8
+          min-idle: 2
+          max-wait: 3s
+          time-between-eviction-runs: 10s
+  jackson:
+    default-property-inclusion: non_null # ignore the null value when serialize to json
+
+mybatis-plus:
+  type-aliases-package: com.review.model.entity # optional
+  global-config:
+    db-config:
+      table-prefix: tb_
+
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    com.review: DEBUG
+
+
+
+
