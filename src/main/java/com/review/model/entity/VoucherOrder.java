@@ -27,7 +27,7 @@ public class VoucherOrder implements Serializable {
     private Long userId;
 
     /**
-     * Voucher ID
+     * VoucherService ID
      */
     private Long voucherId;
 

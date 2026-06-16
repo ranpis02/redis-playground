@@ -19,7 +19,7 @@ public class Voucher implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Voucher ID
+     * VoucherService ID
      */
     @TableId(type = IdType.AUTO)
     private Long id;
@@ -30,17 +30,17 @@ public class Voucher implements Serializable {
     private Long shopId;
 
     /**
-     * Voucher title
+     * VoucherService title
      */
     private String title;
 
     /**
-     * Voucher subtitle
+     * VoucherService subtitle
      */
     private String subTitle;
 
     /**
-     * Voucher usage rules
+     * VoucherService usage rules
      */
     private Long rules;
 
@@ -55,17 +55,17 @@ public class Voucher implements Serializable {
     private Long actualValue;
 
     /**
-     * Voucher type
+     * VoucherService type
      */
     private Integer type;
 
     /**
-     * Voucher status
+     * VoucherService status
      */
     private Integer status;
 
     /**
-     * Voucher stock
+     * VoucherService stock
      */
     @TableField(exist = false)
     private Integer stock;

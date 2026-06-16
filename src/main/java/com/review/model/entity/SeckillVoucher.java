@@ -18,7 +18,7 @@ public class SeckillVoucher implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Voucher ID
+     * VoucherService ID
      */
     @TableId(type = IdType.INPUT)
     private Long voucherId;
