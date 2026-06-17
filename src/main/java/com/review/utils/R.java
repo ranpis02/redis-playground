@@ -1,4 +1,4 @@
-package com.review.model.dto;
+package com.review.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Result {
+public class R {
 
     /**
      * Whether the request is successful or not
@@ -31,19 +31,19 @@ public class Result {
      */
     private Long total;
 
-    public static Result ok(){
-        return new Result(true, null, null, null);
+    public static R ok(){
+        return new R(true, null, null, null);
     }
 
-    public static Result ok(Object data){
-        return new Result(true, null, data, null);
+    public static R ok(Object data){
+        return new R(true, null, data, null);
     }
 
-    public static Result ok(List<?> data, Long total){
-        return new Result(true, null, data, total);
+    public static R ok(List<?> data, Long total){
+        return new R(true, null, data, total);
     }
 
-    public static Result fail(String errorMsg){
-        return new Result(false, errorMsg, null, null);
+    public static R fail(String errorMsg){
+        return new R(false, errorMsg, null, null);
     }
 }
