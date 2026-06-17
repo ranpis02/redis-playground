@@ -1,15 +1,17 @@
 package com.review;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Spring Boot Application 启动类
+ * Spring Boot ReviewApplication 启动类
  */
 @SpringBootApplication
-public class Application {
+@MapperScan("com.review.mapper")
+public class ReviewApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
+        SpringApplication.run(ReviewApplication.class, args);
     }
 }
