@@ -3,7 +3,6 @@ package com.review.Interceptor;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.review.model.dto.UserDTO;
-import com.review.utils.RedisConstants;
 import com.review.utils.UserHolder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,7 +32,7 @@ public class RefreshTokenInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        String userKey = RedisConstants.LOGIN_USER_KEY + StrUtil.subAfter(auth, AUTHORIZATION_BEARER_PREFIX, false);
+        String userKey = LOGIN_USER_PREFIX + StrUtil.subAfter(auth, AUTHORIZATION_BEARER_PREFIX, false);
         // Get the User object
         Map<Object, Object> userObj = stringRedisTemplate.opsForHash().entries(userKey);
 
