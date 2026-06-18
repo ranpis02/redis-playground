@@ -10,7 +10,7 @@ import static com.review.utils.StatusCodeConstants.*;
 public class LoginInterceptor implements HandlerInterceptor {
 
     @Override
-    public boolean preHandle(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) {
+    public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) {
         // If user is not logged in, reject with 401
         if(UserHolder.get() == null) {
             response.setStatus(UNAUTHORIZED);
