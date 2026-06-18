@@ -8,10 +8,20 @@ import com.review.model.entity.User;
 public interface UserService extends IService<User> {
 
     /**
-     * Verify the user's login information
+     * Send verification code to the given phone number
      *
-     * @param loginFormDTO The login information submitted by the user, include phone number and verification code
-     * @return The login result
+     * @param phone target phone number
+     * @return result indicating whether the code was sent
      */
-    public R login(LoginFormDTO loginFormDTO);
+    R sendCode(String phone);
+
+    /**
+     * Verify the login credentials and authenticate the user.
+     * If the user does not exist, auto-register a new account.
+     *
+     * @param loginFormDTO login credentials containing phone number and verification code
+     * @return login result containing the token on success
+     */
+    R login(LoginFormDTO loginFormDTO);
+
 }
