@@ -34,9 +34,9 @@ public class User implements Serializable {
     private String password;
 
     /**
-     * Nickname
+     * User nickname
      */
-    private String nickName;
+    private String nickname;
 
     /**
      * User avatar
