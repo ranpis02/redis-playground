@@ -2,7 +2,7 @@ package com.review.utils;
 
 public class SystemConstants {
     /**
-     * Authorization header prefix for Bearer tokens
+     * Prefix for Bearer tokens in the Authorization header
      */
     public static final String AUTHORIZATION_BEARER_PREFIX = "Bearer ";
 
