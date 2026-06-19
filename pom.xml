@@ -89,6 +89,13 @@
             <version>4.4.0</version>
         </dependency>
 
+        <!-- Override transitive commons-lang3 to fix CVE-2025-48924 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.18.0</version>
+        </dependency>
+
         <!-- Hutool -->
         <dependency>
             <groupId>cn.hutool</groupId>
