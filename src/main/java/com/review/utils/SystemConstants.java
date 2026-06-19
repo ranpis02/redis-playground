@@ -10,4 +10,14 @@ public class SystemConstants {
      * Prefix for auto-generated user nicknames
      */
     public static final String USER_NICK_NAME_PREFIX = "user_";
+
+    /**
+     * Timeout duration for shop queries in milliseconds
+     */
+    public static final Long SHOP_QUERY_TIMEOUT = 2000L;
+
+    /**
+     * Initial backoff duration for retrying failed operations in milliseconds
+     */
+    public static final int BACKOFF_INITIAL = 10;
 }
