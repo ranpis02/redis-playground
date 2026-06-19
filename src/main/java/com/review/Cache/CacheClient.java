@@ -1,6 +1,5 @@
 package com.review.Cache;
 
-import cn.hutool.core.lang.TypeReference;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.review.model.dto.RedisDTO;
