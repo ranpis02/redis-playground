@@ -93,10 +93,10 @@
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
-            <version>5.8.40</version>
+            <version>5.8.46</version>
         </dependency>
 
-        <!-- AspectJ Weaver (版本由 Spring Boot parent 管理) -->
+        <!-- AspectJ Weaver -->
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
