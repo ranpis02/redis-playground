@@ -1,14 +1,13 @@
 package com.review.model.dto;
 
-import lombok.Builder;
 import lombok.Data;
 
 @Data
-public class RedisDTO<T> {
+public class RedisDTO {
     /**
      * The data to be stored into cache
      */
-    private T data;
+    private Object data;
 
     /**
      * TTL for the cache entry
