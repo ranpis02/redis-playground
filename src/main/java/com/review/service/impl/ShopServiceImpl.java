@@ -1,12 +1,13 @@
 package com.review.service.impl;
 
-import cn.hutool.core.lang.TypeReference;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.review.mapper.ShopMapper;
 import com.review.model.dto.RedisDTO;
 import com.review.model.entity.Shop;
 import com.review.service.ShopService;
+import com.review.Cache.CacheClient;
 import com.review.utils.R;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -27,6 +28,9 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements Sh
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
+    @Autowired
+    private CacheClient cacheClient;
+
     private static final ExecutorService CACHE_REBUILD_EXECUTOR = Executors.newFixedThreadPool(10);
 
     private static final long EXPIRATION_TIME = 20L;
@@ -35,9 +39,13 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements Sh
     public R queryById(Long id) {
         // warm-up the data
         saveShopWithLogicalExpire(10L,  EXPIRATION_TIME);
-        saveShopWithLogicalExpire(9L,  EXPIRATION_TIME);
+        // saveShopWithLogicalExpire(9L,  EXPIRATION_TIME);
 
-        Shop shop = queryWithLogicExpiration(id);
+        // cacheClient.setWithLogicalExpire(CACHE_SHOP_KEY_PREFIX + 10L, getById(10L), EXPIRATION_TIME, TimeUnit.SECONDS);
+        // //
+        Shop shop = cacheClient.queryWithLogicalExpiration(CACHE_SHOP_KEY_PREFIX, 10L, this::getById, Shop.class, EXPIRATION_TIME, TimeUnit.SECONDS);
+
+        // Shop shop = queryWithLogicExpiration(10L);
 
         if (shop != null) {
             return R.ok("Query shop successfully");
@@ -145,7 +153,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements Sh
             throw new RuntimeException(e);
         }
 
-        RedisDTO<Shop> redisDTO = new RedisDTO<>();
+        RedisDTO redisDTO = new RedisDTO();
         redisDTO.setData(shop);
         redisDTO.setExpireTime(System.currentTimeMillis() + expireSeconds * 1000);
 
@@ -169,9 +177,10 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements Sh
 
         // Cache hit, and then parse the redisDTOJson
         // RedisDTO redisDTO = JSONUtil.toBean(redisDTOJson, RedisDTO.class);
-        RedisDTO<Shop> redisDTO = JSONUtil.toBean(redisDTOJson, new TypeReference<RedisDTO<Shop>>() {
-        }, false);
-        Shop shopData = redisDTO.getData();
+        // RedisDTO<Shop> redisDTO = JSONUtil.toBean(redisDTOJson, new TypeReference<RedisDTO<Shop>>() {
+        // }, false);
+        RedisDTO redisDTO = JSONUtil.toBean(redisDTOJson, RedisDTO.class);
+        Shop shopData = JSONUtil.toBean((JSONObject) redisDTO.getData(), Shop.class);
 
         if (redisDTO.getExpireTime() > System.currentTimeMillis()) {
             return shopData;
@@ -184,16 +193,16 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements Sh
         boolean isBlock = tryLock(lockKey, requestId);
 
         if(isBlock) {
-            // Double-check the cache before rebuilding cache
-            String latestRedisDTOJson = stringRedisTemplate.opsForValue().get(cacheKey);
-
-            if(latestRedisDTOJson != null && !latestRedisDTOJson.isBlank()) {
-                RedisDTO<Shop> latestRedisDTO = JSONUtil.toBean(latestRedisDTOJson, new TypeReference<RedisDTO<Shop>>() {}, false);
-
-                if(latestRedisDTO.getExpireTime() > System.currentTimeMillis()) {
-                    return latestRedisDTO.getData();
-                }
-            }
+            // Double-check the cache before rebuilding cache (Warning: double-check may cause the lock unable to release)
+            // String latestRedisDTOJson = stringRedisTemplate.opsForValue().get(cacheKey);
+            //
+            // if(latestRedisDTOJson != null && !latestRedisDTOJson.isBlank()) {
+            //     RedisDTO<Shop> latestRedisDTO = JSONUtil.toBean(latestRedisDTOJson, new TypeReference<RedisDTO<Shop>>() {}, false);
+            //
+            //     if(latestRedisDTO.getExpireTime() > System.currentTimeMillis()) {
+            //         return latestRedisDTO.getData();
+            //     }
+            // }
 
             // Start a separate thread for asynchronous rebuild
             CACHE_REBUILD_EXECUTOR.submit(() -> {
