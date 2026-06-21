@@ -32,7 +32,7 @@ public class RefreshTokenInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        String userKey = LOGIN_USER_PREFIX + StrUtil.subAfter(auth, AUTHORIZATION_BEARER_PREFIX, false);
+        String userKey = StrUtil.subAfter(auth, AUTHORIZATION_BEARER_PREFIX, false);
         // Get the User object
         Map<Object, Object> userObj = stringRedisTemplate.opsForHash().entries(userKey);
 
@@ -44,7 +44,7 @@ public class RefreshTokenInterceptor implements HandlerInterceptor {
         // Store the user info into ThreadLocal for later use in this request
         UserHolder.set(userDTO);
         // Flush the expiration time of the token in the redis
-        stringRedisTemplate.expire(userKey, LOGIN_USER_TTL, TimeUnit.SECONDS);
+        stringRedisTemplate.expire(userKey, LOGIN_USER_TTL, TimeUnit.HOURS);
 
         return true;
     }
