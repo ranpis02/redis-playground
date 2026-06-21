@@ -16,9 +16,9 @@ public class RedisConstants {
     public static final String LOGIN_USER_PREFIX = "login:user:";
 
     /**
-     * Login user info TTL in milliseconds
+     * Login user info TTL in hours
      */
-    public static final Long LOGIN_USER_TTL = 36000L;
+    public static final Long LOGIN_USER_TTL = 168L;
 
     /**
      * Prefix for shop cache keys
@@ -48,5 +48,20 @@ public class RedisConstants {
     /**
      * Lock TTL in seconds
      */
-    public static final Long LOCK_TTL = 10L;
+    public static final Long LOCK_TTL = 30L;
+
+    /**
+     * Maximum wait time for acquiring a lock in seconds
+     */
+    public static final Long MAX_WAIT_TIME = 10L;
+
+    /**
+     *  Prefix for seckill voucher order keys
+     */
+    public static final String SECKILL_VOUCHER_ORDER_PREFIX = "seckill:order";
+
+    /**
+     * Prefix for thread id
+     */
+    public static final String THREAD_ID_PREFIX = "thread:id:";
 }
