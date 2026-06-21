@@ -8,6 +8,14 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 @Configuration
 public class RedisScriptConfig {
     @Bean
+    public DefaultRedisScript<Long> lockScript() {
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setLocation(new ClassPathResource("scripts/lock.lua"));
+        script.setResultType(Long.class);
+        return script;
+    }
+
+    @Bean
     public DefaultRedisScript<Long> unlockScript() {
         DefaultRedisScript<Long> script = new DefaultRedisScript<>();
         script.setLocation(new ClassPathResource("scripts/unlock.lua"));
