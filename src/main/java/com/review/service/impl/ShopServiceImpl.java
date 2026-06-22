@@ -7,7 +7,7 @@ import com.review.mapper.ShopMapper;
 import com.review.model.dto.RedisDTO;
 import com.review.model.entity.Shop;
 import com.review.service.ShopService;
-import com.review.Cache.CacheClient;
+import com.review.cache.CacheClient;
 import com.review.utils.R;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
