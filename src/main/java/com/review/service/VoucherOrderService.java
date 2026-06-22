@@ -23,4 +23,12 @@ public interface VoucherOrderService extends IService<VoucherOrder> {
      */
     R grabSeckillVoucherOneRestriction(Long id);
 
+    /**
+     * Grab the seckill voucher using message queue to improve performance under high concurrency.
+     *
+     * @param id voucher ID
+     * @return operation result
+     */
+    R grabSeckillVoucherAsyncExecute(Long id);
+
 }
