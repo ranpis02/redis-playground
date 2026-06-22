@@ -1,4 +1,4 @@
-package com.review.Cache;
+package com.review.cache;
 
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
