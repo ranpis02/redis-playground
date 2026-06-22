@@ -19,6 +19,9 @@ public class RedisIdWorker {
     // Number of bits allocated for the sequence number
     private static final int COUNT_BITS = 32;
 
+    // Prefix for the Redis key used to store the sequence number
+    private static final String COUNT_PREFIX = "incr:";
+
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
@@ -29,7 +32,7 @@ public class RedisIdWorker {
 
         // Generated a unique sequence number
         String date = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        Long count = stringRedisTemplate.opsForValue().increment("icr:" + keyPrefix + ":" + date); // For example, "icr:order:2026-06-01"
+        Long count = stringRedisTemplate.opsForValue().increment(COUNT_PREFIX + keyPrefix + date); // For example, "icr:order:2026-06-01"
 
         if (count == null) {
             throw new IllegalStateException("Snowflake ID generator failed");
