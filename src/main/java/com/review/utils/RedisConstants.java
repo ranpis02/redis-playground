@@ -58,7 +58,12 @@ public class RedisConstants {
     /**
      *  Prefix for seckill voucher order keys
      */
-    public static final String SECKILL_VOUCHER_ORDER_PREFIX = "seckill:order";
+    public static final String SECKILL_VOUCHER_ORDER_PREFIX = "seckill:order:";
+
+    /**
+     * Prefix for seckill voucher stock keys
+     */
+    public static final String SECKILL_VOUCHER_STOCK_PREFIX = "seckill:stock:";
 
     /**
      * Prefix for thread id
