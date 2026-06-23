@@ -11,23 +11,23 @@ public class BlogController {
     @Autowired
     private BlogService blogService;
 
-    @GetMapping("/query")
-    public R queryBlog(@RequestParam Long id) {
+    @GetMapping("/{id}")
+    public R queryBlog(@PathVariable Long id) {
         return blogService.queryBlogById(id);
     }
 
-    @GetMapping("/query-page")
-    public R queryHotBlog(@RequestParam Integer pageNo) {
+    @GetMapping("/hot")
+    public R queryHotBlog(@RequestParam(defaultValue = "1") Integer pageNo) {
         return blogService.queryHotBlog(pageNo);
     }
 
-    @PostMapping("/like")
-    public R likeBlog(@RequestParam Long id) {
+    @PostMapping("/{id}/like")
+    public R likeBlog(@PathVariable Long id) {
         return blogService.likeBlog(id);
     }
 
-    @GetMapping("/query-likes-top5")
-    public R queryTop5(@RequestParam Long id) {
+    @GetMapping("/{id}/likes/top5")
+    public R queryTop5(@PathVariable Long id) {
         return blogService.queryBlogLikesTop5(id);
     }
 }
