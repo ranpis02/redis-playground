@@ -12,7 +12,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @GetMapping("/code")
+    @PostMapping("/code")
     public R sendCode(@RequestParam("phone") String phone) {
         return userService.sendCode(phone);
     }
