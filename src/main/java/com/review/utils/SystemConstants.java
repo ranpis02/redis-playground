@@ -20,4 +20,9 @@ public class SystemConstants {
      * Initial backoff duration for retrying failed operations in milliseconds
      */
     public static final int BACKOFF_INITIAL = 10;
+
+    /**
+     * Maximum number of items per page
+     */
+    public static final int MAX_PAGE_SIZE = 20;
 }

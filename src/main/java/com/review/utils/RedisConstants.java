@@ -69,4 +69,9 @@ public class RedisConstants {
      * Prefix for thread id
      */
     public static final String THREAD_ID_PREFIX = "thread:id:";
+
+    /**
+     * Prefix for blog like keys
+     */
+    public static final String BLOG_LIKED_KEY_PREFIX = "blog:liked:";
 }
