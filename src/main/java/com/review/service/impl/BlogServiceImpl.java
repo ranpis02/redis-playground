@@ -12,6 +12,8 @@ import com.review.service.BlogService;
 import com.review.service.UserService;
 import com.review.utils.R;
 import com.review.utils.UserHolder;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -36,12 +39,15 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
+    @Autowired
+    private RedissonClient redissonClient;
+
     @Override
     public R queryBlogById(Long id) {
         // Query the blog
         Blog blog = getById(id);
 
-        if(blog == null) {
+        if (blog == null) {
             return R.fail("The blog does not exist.");
         }
 
@@ -75,33 +81,53 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     public R likeBlog(Long id) {
         Long userId = UserHolder.get().getId();
         String blogKey = BLOG_LIKED_KEY_PREFIX + id;
+        String blogLock = BLOG_LIKED_LOCK_PREFIX + userId + ":" + id;
 
-        Double score = stringRedisTemplate.opsForZSet().score(blogKey, userId.toString());
+        RLock lock = redissonClient.getLock(blogLock);
+        boolean isLocked = false;
 
-        if(Objects.isNull(score)) {
-            // If user has not liked the blog, increment the like count and add the user to Redis set
-            boolean update = this.update(
-                    new LambdaUpdateWrapper<Blog>()
-                            .eq(Blog::getId, id)
-                            .setSql("liked = liked + 1")
-            );
+        try {
+            isLocked = lock.tryLock(1, TimeUnit.SECONDS);
 
-            if(update) {
-                // stringRedisTemplate.opsForSet().add(blogKey, userId.toString());
-                stringRedisTemplate.opsForZSet().add(blogKey, userId.toString(), System.currentTimeMillis());
+            if (!isLocked) {
+                return R.fail("The operation is too frequent, please try again later.");
             }
-        } else {
-            // If the user has already liked the blog, decrement the like count and remove the user from Redis set
-            boolean update = this.update(
-                    new LambdaUpdateWrapper<Blog>()
-                            .eq(Blog::getId, id)
-                            .setSql("liked = liked - 1")
-            );
-            if(update) {
-                // stringRedisTemplate.opsForSet().remove(blogKey, userId.toString());
-                stringRedisTemplate.opsForZSet().remove(blogKey, userId.toString());
+
+            Double score = stringRedisTemplate.opsForZSet().score(blogKey, userId.toString());
+
+            if (Objects.isNull(score)) {
+                // If user has not liked the blog, increment the like count and add the user to Redis set
+                boolean update = this.update(
+                        new LambdaUpdateWrapper<Blog>()
+                                .eq(Blog::getId, id)
+                                .setSql("liked = liked + 1")
+                );
+
+                if (update) {
+                    // stringRedisTemplate.opsForSet().add(blogKey, userId.toString());
+                    stringRedisTemplate.opsForZSet().add(blogKey, userId.toString(), System.currentTimeMillis());
+                }
+            } else {
+                // If the user has already liked the blog, decrement the like count and remove the user from Redis set
+                boolean update = this.update(
+                        new LambdaUpdateWrapper<Blog>()
+                                .eq(Blog::getId, id)
+                                .setSql("liked = liked - 1")
+                );
+                if (update) {
+                    // stringRedisTemplate.opsForSet().remove(blogKey, userId.toString());
+                    stringRedisTemplate.opsForZSet().remove(blogKey, userId.toString());
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return R.fail("系统繁忙");
+        } finally {
+            if (isLocked) {
+                lock.unlock();
             }
         }
+
 
         return R.ok();
     }
@@ -117,7 +143,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         String blogKey = BLOG_LIKED_KEY_PREFIX + id;
 
         Set<String> top5 = stringRedisTemplate.opsForZSet().reverseRange(blogKey, 0, 4);
-        if(top5 == null || top5.isEmpty()) {
+        if (top5 == null || top5.isEmpty()) {
             return R.ok(Collections.emptyList());
         }
 
