@@ -203,6 +203,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         }
     }
 
+    /**
+     * Associate with the grabSeckillVoucherOneRestriction
+     */
     @Transactional
     public R createOrder(Long voucherId) {
         Long userId = UserHolder.get().getId();
@@ -264,6 +267,20 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         return R.ok(orderId);
     }
 
+    /**
+     * Handle the order from the Redis Stream (include the ready messages and the pending messages), and then acknowledge them
+     *
+     * @param record the message to be processed
+     */
+    private void executeBusiness(MapRecord<String, Object, Object> record) {
+        VoucherOrder order = BeanUtil.fillBeanWithMap(record.getValue(), new VoucherOrder(), true);
+
+        handleVoucherOrder(order);
+
+        stringRedisTemplate.opsForStream()
+                .acknowledge(QUEUE_NAME, GROUP_NAME, record.getId());
+    }
+
     private class VoucherOrderHandler implements Runnable {
         @Override
         public void run() {
@@ -292,6 +309,11 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         }
     }
 
+    /**
+     * Handle the voucher order with Redisson distributed lock to prevent the message redelivery and the
+     *
+     * @param order Order to be processed
+     */
     private void handleVoucherOrder(VoucherOrder order) {
         RLock lock = redissonClient.getLock(LOCK_KEY_PREFIX + order.getUserId() + ":" + order.getVoucherId());
 
@@ -307,6 +329,20 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         }
     }
 
+    /**
+     * Handle voucher order creation with Redisson distributed lock.
+     * Core purpose of this lock:
+     * 1. Ensure idempotency of order creation.
+     *    - createVoucherOrder contains multiple non-atomic operations (e.g. stock validation, DB query, insert)
+     *    - Without a lock, concurrent execution may lead to duplicate orders or inconsistent state.
+     * 2. Prevent duplicate processing caused by message re-delivery in Redis Stream / MQ scenarios.
+     *    - The same message may be consumed multiple times under retry or consumer failure conditions.
+     * 3. Serialize per-user + per-voucher operations to avoid race conditions.
+     *    - Ensures that only one order creation task for the same user and voucher can proceed at a time.
+     * Lock granularity: userId + voucherId (fine-grained to reduce contention)
+     *
+     * @param order Order to be processed
+     */
     @Transactional
     public void createVoucherOrder(VoucherOrder order) {
         // Database fallback check
@@ -332,6 +368,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         save(order);
     }
 
+    /**
+     * Handle the pending list of the consumer's PEL (Pending Entries List) to process unacknowledged messages
+     */
     private void handlePendingList() {
         while (true) {
             try {
@@ -370,6 +409,12 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         }
     }
 
+    /**
+     * Check if the message is a poison message (i.e., has been retried more than MAX_RETRY times)
+     *
+     * @param messageId message id
+     * @return true if the message is a poison message,false otherwise
+     */
     private boolean isPoisonMessage(RecordId messageId) {
         try {
             PendingMessages pendingMessages = stringRedisTemplate.opsForStream().pending(
@@ -391,14 +436,6 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         return false;
     }
 
-    private void executeBusiness(MapRecord<String, Object, Object> record) {
-        VoucherOrder order = BeanUtil.fillBeanWithMap(record.getValue(), new VoucherOrder(), true);
-
-        handleVoucherOrder(order);
-
-        stringRedisTemplate.opsForStream()
-                .acknowledge(QUEUE_NAME, GROUP_NAME, record.getId());
-    }
 
     private boolean isBusyGroupError(Throwable e) {
         while (e != null) {
