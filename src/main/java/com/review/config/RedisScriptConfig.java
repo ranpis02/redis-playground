@@ -22,4 +22,12 @@ public class RedisScriptConfig {
         script.setResultType(Long.class);
         return script;
     }
+
+    @Bean
+    public DefaultRedisScript<Long> seckillScript() {
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setLocation(new ClassPathResource("scripts/stream-seckill.lua"));
+        script.setResultType(Long.class);
+        return script;
+    }
 }
