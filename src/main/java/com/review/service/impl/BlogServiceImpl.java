@@ -18,8 +18,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.review.utils.SystemConstants.*;
 import static com.review.utils.RedisConstants.*;
@@ -111,18 +114,27 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
      */
     @Override
     public R queryBlogLikesTop5(Long id) {
-        Long userId = UserHolder.get().getId();
         String blogKey = BLOG_LIKED_KEY_PREFIX + id;
 
-        Set<String> top5 = stringRedisTemplate.opsForZSet().range(blogKey, 0, 4);
+        Set<String> top5 = stringRedisTemplate.opsForZSet().reverseRange(blogKey, 0, 4);
         if(top5 == null || top5.isEmpty()) {
             return R.ok(Collections.emptyList());
         }
 
+        // Ignore the sequence
+        // List<Long> ids = top5.stream().map(Long::valueOf).toList();
+        // List<UserDTO> userDTOList = userService.listByIds(ids).stream()
+        //         .map(user -> BeanUtil.copyProperties(user, UserDTO.class))
+        //         .toList();
+        // =================================================================
         List<Long> ids = top5.stream().map(Long::valueOf).toList();
-        List<UserDTO> userDTOList = userService.listByIds(ids).stream().map(
-                user -> BeanUtil.copyProperties(user, UserDTO.class)
-        ).toList();
+        Map<Long, UserDTO> userMap = userService.listByIds(ids).stream()
+                .map(user -> BeanUtil.copyProperties(user, UserDTO.class))
+                .collect(Collectors.toMap(UserDTO::getId, Function.identity()));
+
+        List<UserDTO> userDTOList = ids.stream()
+                .map(userMap::get)
+                .toList();
 
         return R.ok(userDTOList);
     }
