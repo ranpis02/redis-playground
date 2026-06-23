@@ -21,7 +21,7 @@ public class VoucherOrderController {
 
     @PostMapping("/grab/one")
     public R grabSeckillVoucherOne(@RequestParam Long id) {
-        return voucherOrderService.grabSeckillVoucherOneRestriction(id);
+        return voucherOrderService.grabSeckillVoucherAsyncExecute(id);
     }
 
 
