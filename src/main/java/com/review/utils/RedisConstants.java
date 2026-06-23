@@ -74,4 +74,9 @@ public class RedisConstants {
      * Prefix for blog like keys
      */
     public static final String BLOG_LIKED_KEY_PREFIX = "blog:liked:";
+
+    /**
+     * Prefix for blog like lock
+     */
+    public static final String BLOG_LIKED_LOCK_PREFIX = "blog:locked:";
 }
