@@ -12,8 +12,8 @@ public class ShopController {
     @Autowired
     private ShopService shopService;
 
-    @GetMapping("/query")
-    public R queryById(@RequestParam Long id) {
+    @GetMapping("/{id}")
+    public R queryById(@PathVariable Long id) {
         return shopService.queryById(id);
     }
 }
