@@ -77,6 +77,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     private static final ExecutorService SECKILL_ORDER_EXECUTOR = Executors.newSingleThreadExecutor();
 
+    private volatile boolean running = true;
+
     @PostConstruct
     private void init() {
         try {
@@ -102,7 +104,15 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     @PreDestroy
     private void destroy() {
-        SECKILL_ORDER_EXECUTOR.shutdown();
+        running = false;
+        SECKILL_ORDER_EXECUTOR.shutdownNow();
+        try {
+            if (!SECKILL_ORDER_EXECUTOR.awaitTermination(5, TimeUnit.SECONDS)) {
+                log.warn("SECKILL_ORDER_EXECUTOR did not terminate in time");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Override
@@ -284,7 +294,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     private class VoucherOrderHandler implements Runnable {
         @Override
         public void run() {
-            while (true) {
+            while (running) {
                 try {
                     List<MapRecord<String, Object, Object>> message = stringRedisTemplate.opsForStream().read(
                             Consumer.from(GROUP_NAME, CONSUMER_NAME),
@@ -302,6 +312,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
                     MapRecord<String, Object, Object> record = message.get(0);
                     executeBusiness(record);
                 } catch (Exception e) {
+                    if (!running) break;
                     log.error("Error processing order, and then will be enrolled in the PEL compensation mechanism subsequently", e);
                     handlePendingList();
                 }
