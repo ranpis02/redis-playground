@@ -79,4 +79,9 @@ public class RedisConstants {
      * Prefix for blog like lock
      */
     public static final String BLOG_LIKED_LOCK_PREFIX = "blog:locked:";
+
+    /**
+     * Prefix for user check-in
+     */
+    public static final String USER_SIGN_KEY_PREFIX = "user:sign:";
 }
