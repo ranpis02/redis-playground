@@ -11,12 +11,17 @@ import com.review.model.dto.UserDTO;
 import com.review.model.entity.User;
 import com.review.service.UserService;
 import com.review.utils.R;
+import com.review.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -34,7 +39,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public R sendCode(String phone) {
-        if(!Validator.isMobile(phone)) {
+        if (!Validator.isMobile(phone)) {
             return R.fail("Invalid phone number format!");
         }
 
@@ -55,14 +60,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String cacheCode = stringRedisTemplate.opsForValue().get(LOGIN_CODE_PREFIX + phone);
         String requestCode = loginFormDTO.getCode();
 
-        if(cacheCode == null || !cacheCode.equals(requestCode)) {
+        if (cacheCode == null || !cacheCode.equals(requestCode)) {
             return R.fail("Verification failed!");
         }
 
         // Query or create user
         User user = query().eq("phone", phone).one();
 
-        if(user == null) {
+        if (user == null) {
             user = createUserWithPhone(phone);
         }
 
@@ -78,6 +83,53 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // Set token expiration
         stringRedisTemplate.expire(tokenKey, LOGIN_USER_TTL, TimeUnit.HOURS);
         return R.ok(tokenKey);
+    }
+
+    @Override
+    public R sign() {
+        Long userId = UserHolder.get().getId();
+
+        LocalDateTime now = LocalDateTime.now();
+
+        String keySuffix = now.format(DateTimeFormatter.ofPattern(":yyyyMM"));
+        String key = USER_SIGN_KEY_PREFIX + userId + keySuffix;
+        int dayOfMonth = now.getDayOfMonth();
+
+        stringRedisTemplate.opsForValue().setBit(key, dayOfMonth - 1, true);
+        return R.ok();
+    }
+
+    @Override
+    public R signCount() {
+        Long userId = UserHolder.get().getId();
+
+        LocalDateTime now = LocalDateTime.now();
+
+        String keySuffix = now.format(DateTimeFormatter.ofPattern(":yyyyMM"));
+        String key = USER_SIGN_KEY_PREFIX + userId + keySuffix;
+        int dayOfMonth = now.getDayOfMonth();
+
+        List<Long> result = stringRedisTemplate.opsForValue().bitField(
+                key,
+                BitFieldSubCommands.create()
+                        .get(BitFieldSubCommands.BitFieldType.unsigned(dayOfMonth)).valueAt(0)
+        );
+
+        if (result == null || result.isEmpty()) {
+            return R.ok(0);
+        }
+
+        Long num = result.get(0);
+        if (num == null || num == 0) {
+            return R.ok(0);
+        }
+
+        int count = 0;
+        while ((num & 1) != 0) {
+            count++;
+            num >>>= 1;
+        }
+        return R.ok(count);
     }
 
     /**

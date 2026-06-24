@@ -24,4 +24,18 @@ public interface UserService extends IService<User> {
      */
     R login(LoginFormDTO loginFormDTO);
 
+    /**
+     * User sign-in record
+     *
+     * @return result of response
+     */
+    R sign();
+
+    /**
+     * Count the user's consecutive check-in days (counting only the current streak up to today)
+     *
+     * @return result of response
+     */
+    R signCount();
+
 }
